@@ -1,0 +1,12 @@
+{"type":"user","uuid":"u1","parentUuid":"","sessionId":"s1","timestamp":"2026-07-01T01:00:00.000Z","cwd":"/Users/sample/Dev/sample","message":{"role":"user","content":"トップページを作ってください"}}
+{"type":"assistant","uuid":"a1","parentUuid":"u1","sessionId":"s1","timestamp":"2026-07-01T01:00:10.000Z","cwd":"/Users/sample/Dev/sample","message":{"role":"assistant","content":[{"type":"text","text":"承知しました"}]}}
+{"type":"user","uuid":"u2","parentUuid":"a1","sessionId":"s1","timestamp":"2026-07-01T01:01:00.000Z","cwd":"/Users/sample/Dev/sample","message":{"role":"user","content":"そうじゃなくて、一覧ページが先です"}}
+{"type":"assistant","uuid":"a2","parentUuid":"u2","sessionId":"s1","timestamp":"2026-07-01T01:01:10.000Z","cwd":"/Users/sample/Dev/sample","message":{"role":"assistant","content":[{"type":"text","text":"一覧ページから着手します"}]}}
+{"type":"assistant","uuid":"a2b","parentUuid":"u2","sessionId":"s1","timestamp":"2026-07-01T01:02:00.000Z","cwd":"/Users/sample/Dev/sample","message":{"role":"assistant","content":[{"type":"text","text":"やり直します"}]}}
+{"type":"system","subtype":"turn_duration","uuid":"sy1","parentUuid":"a2b","sessionId":"s1","timestamp":"2026-07-01T01:02:30.000Z","cwd":"/Users/sample/Dev/sample","durationMs":30000,"messageCount":5}
+{"type":"user","uuid":"u3","parentUuid":"a2b","sessionId":"s1","timestamp":"2026-07-01T01:03:00.000Z","cwd":"/Users/sample/Dev/sample","message":{"role":"user","content":[{"type":"tool_result","is_error":true,"content":"command failed"}]}}
+{"type":"user","uuid":"u4","parentUuid":"u3","sessionId":"s1","timestamp":"2026-07-01T01:04:00.000Z","cwd":"/Users/sample/Dev/sample","message":{"role":"user","content":"<command-name>/clear</command-name>"}}
+{"type":"user","uuid":"u5","parentUuid":"u4","sessionId":"s1","timestamp":"2026-07-01T01:05:00.000Z","cwd":"/Users/sample/Dev/sample","message":{"role":"user","content":"改めて説明します。ギフト記録アプリの一覧ページを実装中です"}}
+{broken json line
+{"type":"queue-operation","uuid":"q1","sessionId":"s1","timestamp":"2026-07-01T01:06:00.000Z"}
+{"type":"user","uuid":"u6","parentUuid":"u5","sessionId":"s1","timestamp":"2026-07-01T01:07:00.000Z","cwd":"/Users/sample/Dev/sample","isCompactSummary":true,"message":{"role":"user","content":"(要約) ここまでの経緯..."}}
