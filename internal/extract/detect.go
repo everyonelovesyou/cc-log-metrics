@@ -15,18 +15,58 @@ func FromSession(entries []transcript.Entry, project string, lex Lexicon) []Even
 	base := func(kind string, e transcript.Entry) Event {
 		return Event{Kind: kind, Project: project, SessionID: e.SessionID, Timestamp: e.Timestamp}
 	}
-	for _, e := range entries {
+
+	// rewind: 同一 parentUuid を持つ user/assistant エントリの分岐 (2件目以降を数える)
+	seenParent := map[string]bool{}
+
+	// clear_boundary: 境界を積んでおき、後続の最初のプロンプト文字数を埋める
+	type pendingBoundary struct{ index int }
+	var pending []pendingBoundary
+
+	addBoundary := func(e transcript.Entry, reason string) {
+		ev := base(KindClearBoundary, e)
+		ev.Detail = map[string]any{"reason": reason, "nextPromptChars": 0}
+		events = append(events, ev)
+		pending = append(pending, pendingBoundary{index: len(events) - 1})
+	}
+
+	for i, e := range entries {
+		if i == 0 {
+			addBoundary(e, "session_start")
+		}
+
+		if (e.Type == "user" || e.Type == "assistant") && e.ParentUUID != "" {
+			if seenParent[e.ParentUUID] {
+				events = append(events, base(KindRewind, e))
+			}
+			seenParent[e.ParentUUID] = true
+		}
+
+		if e.IsCompactSummary || e.Subtype == "compact_boundary" {
+			events = append(events, base(KindCompact, e))
+		}
+
+		if e.Type == "user" && strings.Contains(e.UserText(), "<command-name>/clear</command-name>") {
+			addBoundary(e, "clear")
+		}
+
 		switch {
 		case isPrompt(e):
 			text := e.UserText()
+			chars := len([]rune(text))
 			ev := base(KindUserPrompt, e)
-			ev.Detail = map[string]any{"chars": len([]rune(text))}
+			ev.Detail = map[string]any{"chars": chars}
 			events = append(events, ev)
 			if pattern, ok := lex.Match(text); ok {
 				cv := base(KindCorrection, e)
 				cv.Detail = map[string]any{"utterance": text, "pattern": pattern}
 				events = append(events, cv)
 			}
+			// 未解決の境界すべてに、境界後最初のプロンプト長として記録する
+			for _, pb := range pending {
+				events[pb.index].Detail["nextPromptChars"] = chars
+			}
+			pending = pending[:0]
 		case e.Type == "system" && e.Subtype == "turn_duration":
 			ev := base(KindTurn, e)
 			ev.Detail = map[string]any{"durationMs": e.DurationMs, "messageCount": e.MessageCount}
