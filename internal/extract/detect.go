@@ -6,7 +6,7 @@ import (
 	"cc-log-metrics/internal/transcript"
 )
 
-// Lexicon は correction 判定の語彙。Task 4 で外部ファイル読み込みを実装する。
+// Lexicon は correction 判定の語彙。
 type Lexicon []string
 
 // FromSession は1セッション分のエントリから全イベントを検出する。
@@ -18,9 +18,15 @@ func FromSession(entries []transcript.Entry, project string, lex Lexicon) []Even
 	for _, e := range entries {
 		switch {
 		case isPrompt(e):
+			text := e.UserText()
 			ev := base(KindUserPrompt, e)
-			ev.Detail = map[string]any{"chars": len([]rune(e.UserText()))}
+			ev.Detail = map[string]any{"chars": len([]rune(text))}
 			events = append(events, ev)
+			if pattern, ok := lex.Match(text); ok {
+				cv := base(KindCorrection, e)
+				cv.Detail = map[string]any{"utterance": text, "pattern": pattern}
+				events = append(events, cv)
+			}
 		case e.Type == "system" && e.Subtype == "turn_duration":
 			ev := base(KindTurn, e)
 			ev.Detail = map[string]any{"durationMs": e.DurationMs, "messageCount": e.MessageCount}
