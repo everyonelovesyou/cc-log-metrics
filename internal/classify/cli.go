@@ -21,12 +21,20 @@ func Main(args []string) error {
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
-	if *batch <= 0 {
-		return fmt.Errorf("--batch は正の整数を指定してください: %d", *batch)
-	}
 	in := "out/events.jsonl"
+	// flag は最初の非フラグ引数でパースを止めてしまうため、位置引数 (入力パス) を
+	// 取り出したうえで残りを再パースし、位置引数の後ろに置かれたフラグも反映する。
 	if fs.NArg() > 0 {
 		in = fs.Arg(0)
+		if err := fs.Parse(fs.Args()[1:]); err != nil {
+			return err
+		}
+		if fs.NArg() > 0 {
+			return fmt.Errorf("想定外の引数です: %v", fs.Args())
+		}
+	}
+	if *batch <= 0 {
+		return fmt.Errorf("--batch は正の整数を指定してください: %d", *batch)
 	}
 
 	events, err := readEvents(in)

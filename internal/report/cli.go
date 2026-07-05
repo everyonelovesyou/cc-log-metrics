@@ -22,8 +22,16 @@ func Main(args []string) error {
 	}
 
 	in := ""
+	// flag は最初の非フラグ引数でパースを止めてしまうため、位置引数 (入力パス) を
+	// 取り出したうえで残りを再パースし、位置引数の後ろに置かれたフラグも反映する。
 	if fs.NArg() > 0 {
 		in = fs.Arg(0)
+		if err := fs.Parse(fs.Args()[1:]); err != nil {
+			return err
+		}
+		if fs.NArg() > 0 {
+			return fmt.Errorf("想定外の引数です: %v", fs.Args())
+		}
 	} else {
 		// enriched があれば優先、なければ素の events
 		in = "out/events.enriched.jsonl"

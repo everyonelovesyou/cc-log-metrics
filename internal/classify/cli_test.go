@@ -68,3 +68,40 @@ func TestMainFallsBackWhenClaudeMissing(t *testing.T) {
 		t.Errorf("classification = %q, want 未分類のまま", got[0].Classification)
 	}
 }
+
+// TestMainTrailingFlagAfterPositional は、位置引数 (入力パス) の後に置かれた
+// -o フラグが無視されず反映されることを確認する。
+// flag パッケージは最初の非フラグ引数でパースを止めるため、
+// 事前に修正しないと -o は無視され out/events.enriched.jsonl (デフォルト) に書かれてしまう。
+func TestMainTrailingFlagAfterPositional(t *testing.T) {
+	t.Setenv("PATH", t.TempDir())
+
+	dir := t.TempDir()
+	in := filepath.Join(dir, "events.jsonl")
+	out := filepath.Join(dir, "events.enriched.jsonl")
+	writeJSONL(t, in, []extract.Event{corr("そうじゃなくて A", "")})
+
+	if err := Main([]string{in, "-o", out}); err != nil {
+		t.Fatalf("Main: %v", err)
+	}
+
+	got := readJSONL(t, out)
+	if len(got) != 1 {
+		t.Fatalf("len = %d, want 1 (トレイリング -o が反映されていない)", len(got))
+	}
+}
+
+// TestMainTrailingBatchZeroRejected は、位置引数の後に置かれた --batch 0 でも
+// 従来どおりバリデーションエラーになることを確認する。
+func TestMainTrailingBatchZeroRejected(t *testing.T) {
+	t.Setenv("PATH", t.TempDir())
+
+	dir := t.TempDir()
+	in := filepath.Join(dir, "events.jsonl")
+	writeJSONL(t, in, []extract.Event{corr("そうじゃなくて A", "")})
+
+	err := Main([]string{in, "--batch", "0"})
+	if err == nil {
+		t.Fatal("Main: エラーを期待したが nil だった (トレイリング --batch 0 が検証されていない)")
+	}
+}
