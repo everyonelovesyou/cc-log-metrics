@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
+
+	"cc-log-metrics/internal/extract"
 )
 
 func main() {
@@ -19,7 +21,7 @@ func run(args []string) error {
 	}
 	switch args[0] {
 	case "extract":
-		return errors.New("extract: 未実装")
+		return extract.Main(args[1:])
 	case "classify":
 		return errors.New("classify: 未実装")
 	case "report":
