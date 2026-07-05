@@ -7,6 +7,7 @@ import (
 
 	"cc-log-metrics/internal/classify"
 	"cc-log-metrics/internal/extract"
+	"cc-log-metrics/internal/report"
 )
 
 func main() {
@@ -26,7 +27,7 @@ func run(args []string) error {
 	case "classify":
 		return classify.Main(args[1:])
 	case "report":
-		return errors.New("report: 未実装")
+		return report.Main(args[1:])
 	default:
 		return fmt.Errorf("不明なサブコマンド: %s", args[0])
 	}
