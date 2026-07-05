@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"cc-log-metrics/internal/extract"
@@ -103,5 +104,23 @@ func TestMainTrailingBatchZeroRejected(t *testing.T) {
 	err := Main([]string{in, "--batch", "0"})
 	if err == nil {
 		t.Fatal("Main: エラーを期待したが nil だった (トレイリング --batch 0 が検証されていない)")
+	}
+}
+
+// TestMainExtraPositionalRejected は、位置引数が 2 つ以上指定された場合に
+// 無言で捨てずエラーを返すことを確認する。
+func TestMainExtraPositionalRejected(t *testing.T) {
+	t.Setenv("PATH", t.TempDir())
+
+	dir := t.TempDir()
+	in := filepath.Join(dir, "events.jsonl")
+	writeJSONL(t, in, []extract.Event{corr("そうじゃなくて A", "")})
+
+	err := Main([]string{in, filepath.Join(dir, "extra.jsonl")})
+	if err == nil {
+		t.Fatal("Main: エラーを期待したが nil だった (余剰の位置引数が無視されている)")
+	}
+	if !strings.Contains(err.Error(), "想定外の引数") {
+		t.Errorf("エラーメッセージ = %q, want 想定外の引数 を含む", err.Error())
 	}
 }
