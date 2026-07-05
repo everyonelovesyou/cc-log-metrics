@@ -1,7 +1,6 @@
 package classify
 
 import (
-	"bufio"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -37,7 +36,7 @@ func Main(args []string) error {
 		return fmt.Errorf("--batch は正の整数を指定してください: %d", *batch)
 	}
 
-	events, err := readEvents(in)
+	events, err := extract.ReadEvents(in)
 	if err != nil {
 		return err
 	}
@@ -54,25 +53,6 @@ func Main(args []string) error {
 	}
 	// 途中失敗でも分類済み分は保存されている (再実行で残りだけ分類される)
 	return applyErr
-}
-
-func readEvents(path string) ([]extract.Event, error) {
-	f, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-	sc := bufio.NewScanner(f)
-	sc.Buffer(make([]byte, 0, 64*1024), 16*1024*1024)
-	var events []extract.Event
-	for sc.Scan() {
-		var ev extract.Event
-		if err := json.Unmarshal(sc.Bytes(), &ev); err != nil {
-			return nil, fmt.Errorf("%s の行を解釈できません: %w", path, err)
-		}
-		events = append(events, ev)
-	}
-	return events, sc.Err()
 }
 
 func write(events []extract.Event, path string) error {

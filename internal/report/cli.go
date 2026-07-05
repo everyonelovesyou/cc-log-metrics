@@ -1,8 +1,6 @@
 package report
 
 import (
-	"bufio"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -40,7 +38,7 @@ func Main(args []string) error {
 		}
 	}
 
-	events, err := readEvents(in)
+	events, err := extract.ReadEvents(in)
 	if err != nil {
 		return err
 	}
@@ -68,6 +66,9 @@ func Main(args []string) error {
 	if err := RenderMarkdown(mf, groups); err != nil {
 		return err
 	}
+	if err := os.MkdirAll(filepath.Dir(*jsonOut), 0o755); err != nil {
+		return err
+	}
 	jf, err := os.Create(*jsonOut)
 	if err != nil {
 		return err
@@ -78,23 +79,4 @@ func Main(args []string) error {
 	}
 	fmt.Fprintf(os.Stderr, "%d イベント (%s) から %s と %s を生成しました\n", len(events), in, *out, *jsonOut)
 	return nil
-}
-
-func readEvents(path string) ([]extract.Event, error) {
-	f, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-	sc := bufio.NewScanner(f)
-	sc.Buffer(make([]byte, 0, 64*1024), 16*1024*1024)
-	var events []extract.Event
-	for sc.Scan() {
-		var ev extract.Event
-		if err := json.Unmarshal(sc.Bytes(), &ev); err != nil {
-			return nil, fmt.Errorf("%s の行を解釈できません: %w", path, err)
-		}
-		events = append(events, ev)
-	}
-	return events, sc.Err()
 }

@@ -1,6 +1,7 @@
 package extract
 
 import (
+	"bufio"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -21,6 +22,9 @@ func Main(args []string) error {
 	out := fs.String("o", "out/events.jsonl", "出力先")
 	if err := fs.Parse(args); err != nil {
 		return err
+	}
+	if fs.NArg() > 0 {
+		return fmt.Errorf("想定外の引数です: %v", fs.Args())
 	}
 
 	lex := DefaultLexicon()
@@ -110,4 +114,25 @@ func writeEvents(w io.Writer, events []Event) error {
 		}
 	}
 	return nil
+}
+
+// ReadEvents は events(.enriched).jsonl を読み込み Event 列を返す。
+// classify / report 両サブコマンドで共通に使う。
+func ReadEvents(path string) ([]Event, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	sc := bufio.NewScanner(f)
+	sc.Buffer(make([]byte, 0, 64*1024), 16*1024*1024)
+	var events []Event
+	for sc.Scan() {
+		var ev Event
+		if err := json.Unmarshal(sc.Bytes(), &ev); err != nil {
+			return nil, fmt.Errorf("%s の行を解釈できません: %w", path, err)
+		}
+		events = append(events, ev)
+	}
+	return events, sc.Err()
 }

@@ -57,6 +57,29 @@ func TestMainTrailingFlagsAfterPositional(t *testing.T) {
 	}
 }
 
+// TestMainCreatesJSONOutputDir は、-o と --json をそれぞれ未作成の別サブ
+// ディレクトリへ向けたとき、report.md 側だけでなく metrics.json 側の
+// ディレクトリも作成されて両ファイルが生成されることを確認する。
+func TestMainCreatesJSONOutputDir(t *testing.T) {
+	dir := t.TempDir()
+	in := filepath.Join(dir, "events.jsonl")
+	writeJSONL(t, in, sampleEvents())
+
+	wantOut := filepath.Join(dir, "md-out", "nested", "report.md")
+	wantJSON := filepath.Join(dir, "json-out", "nested", "metrics.json")
+
+	if err := Main([]string{in, "-o", wantOut, "--json", wantJSON}); err != nil {
+		t.Fatalf("Main: %v", err)
+	}
+
+	if _, err := os.Stat(wantOut); err != nil {
+		t.Errorf("report.md が指定パスに作成されていない: %v", err)
+	}
+	if _, err := os.Stat(wantJSON); err != nil {
+		t.Errorf("metrics.json が指定パスに作成されていない: %v", err)
+	}
+}
+
 // TestMainExtraPositionalRejected は、位置引数が 2 つ以上指定された場合に
 // 無言で捨てずエラーを返すことを確認する。
 func TestMainExtraPositionalRejected(t *testing.T) {
