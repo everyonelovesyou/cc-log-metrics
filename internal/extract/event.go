@@ -3,13 +3,14 @@ package extract
 
 // イベント種別。設計書「イベントモデル」に対応する。
 const (
-	KindUserPrompt    = "user_prompt"
-	KindRewind        = "rewind"
-	KindCorrection    = "correction"
-	KindClearBoundary = "clear_boundary"
-	KindCompact       = "compact"
-	KindTurn          = "turn"
-	KindToolError     = "tool_error"
+	KindUserPrompt     = "user_prompt"
+	KindRewind         = "rewind"
+	KindCorrection     = "correction"
+	KindClearBoundary  = "clear_boundary"
+	KindCompact        = "compact"
+	KindTurn           = "turn"
+	KindToolError      = "tool_error"
+	KindPermissionDeny = "permission_deny"
 )
 
 // Event は正規化イベント。events.jsonl の1行に対応する。
