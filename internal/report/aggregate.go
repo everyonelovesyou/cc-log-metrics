@@ -17,6 +17,7 @@ type Group struct {
 	Prompts           int     `json:"prompts"`
 	Rewinds           int     `json:"rewinds"`
 	Corrections       int     `json:"corrections"`
+	PermissionDenies  int     `json:"permissionDenies"`
 	Boundaries        int     `json:"boundaries"`
 	ToolErrors        int     `json:"toolErrors"`
 	Compacts          int     `json:"compacts"`
@@ -76,6 +77,8 @@ func Aggregate(events []extract.Event, granularity string) []Group {
 			case classify.LabelPreference:
 				a.g.Preferences++
 			}
+		case extract.KindPermissionDeny:
+			a.g.PermissionDenies++
 		case extract.KindClearBoundary:
 			a.g.Boundaries++
 			if n, ok := toFloat(ev.Detail["nextPromptChars"]); ok && n > 0 {
@@ -97,7 +100,8 @@ func Aggregate(events []extract.Event, granularity string) []Group {
 	var groups []Group
 	for _, a := range byKey {
 		if a.g.Prompts > 0 {
-			a.g.InterventionRate = float64(a.g.Rewinds+a.g.Corrections) / float64(a.g.Prompts)
+			// rewind はコンテキスト節約目的の巻き戻しを含むため分子に含めない (参考指標)
+			a.g.InterventionRate = float64(a.g.Corrections+a.g.PermissionDenies) / float64(a.g.Prompts)
 		}
 		if a.reexplainN > 0 {
 			a.g.AvgReexplainChars = a.reexplainSum / float64(a.reexplainN)

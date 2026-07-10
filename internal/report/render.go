@@ -23,11 +23,11 @@ func RenderMarkdown(w io.Writer, groups map[string][]Group) error {
 			continue
 		}
 		fmt.Fprintf(w, "\n## %s\n\n", granularityTitles[gran])
-		fmt.Fprintln(w, "| キー | プロンプト | rewind | 軌道修正 | 介入率 | 境界 | 平均再説明量 | tool_error | 平均ターン秒 |")
+		fmt.Fprintln(w, "| キー | プロンプト | 軌道修正 | 権限拒否 | 介入率 | 境界 | 平均再説明量 | tool_error | 平均ターン秒 |")
 		fmt.Fprintln(w, "|---|---:|---:|---:|---:|---:|---:|---:|---:|")
 		for _, g := range gs {
 			fmt.Fprintf(w, "| %s | %d | %d | %d | %.2f | %d | %.0f | %d | %.0f |\n",
-				g.Key, g.Prompts, g.Rewinds, g.Corrections, g.InterventionRate,
+				g.Key, g.Prompts, g.Corrections, g.PermissionDenies, g.InterventionRate,
 				g.Boundaries, g.AvgReexplainChars, g.ToolErrors, g.AvgTurnSeconds)
 		}
 		if hasClassification(gs) {
@@ -37,6 +37,12 @@ func RenderMarkdown(w io.Writer, groups map[string][]Group) error {
 			for _, g := range gs {
 				fmt.Fprintf(w, "| %s | %d | %d | %d |\n", g.Key, g.SpecChanges, g.ErrorCorrections, g.Preferences)
 			}
+		}
+		fmt.Fprintln(w, "\n参考指標 (介入率の分子に含めない。rewind はコンテキスト節約目的の巻き戻しを含むため):")
+		fmt.Fprintln(w, "\n| キー | rewind |")
+		fmt.Fprintln(w, "|---|---:|")
+		for _, g := range gs {
+			fmt.Fprintf(w, "| %s | %d |\n", g.Key, g.Rewinds)
 		}
 	}
 	renderAnomalies(w, groups["session"])
