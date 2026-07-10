@@ -31,8 +31,9 @@ report.md / metrics.json
 
 | イベント | 検出方法 | 観測項目 |
 |---|---|---|
-| rewind | 同一 parentUuid に複数の子がある分岐点 | 人間がAIの進行を巻き戻した回数 |
+| permission_deny | 権限プロンプトで No を選んだ痕跡 (tool_result の拒否文言) | ユーザーによる権限拒否の回数 (添付指示は detail に保持) |
 | correction | ユーザー発話への語彙パターンマッチ | 発話による軌道修正の回数 |
+| rewind | 同一 parentUuid に複数の子がある分岐点 | 人間がAIの進行を巻き戻した回数 (参考指標) |
 | clear_boundary / compact | `/clear` コマンド痕跡・セッション開始 | 再説明コスト (境界後の最初のプロンプト文字数) |
 | turn | system エントリの turn_duration | ターンあたりの所要時間 |
 | tool_error | ツール結果の error フラグ | AI側のつまずき頻度 |
@@ -54,7 +55,8 @@ go build -o ccmetrics ./cmd/ccmetrics
 
 ## 主な指標
 
-- **介入率** = (rewind + correction) / user_prompt 数
+- **介入率** = (correction + permission_deny) / user_prompt 数
+  - rewind はコンテキスト節約目的の巻き戻しを含むため分子から除外し、参考指標として集計する
 - **再説明量** = /clear・セッション開始直後の最初のプロンプト文字数
 - correction の分類内訳 (classify 実施時): 仕様変更 / 誤り訂正 / 好みの伝達
 
