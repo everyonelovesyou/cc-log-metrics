@@ -36,7 +36,7 @@ report.md / metrics.json
 | rewind | 同一 parentUuid に複数の子がある分岐点 | 人間がAIの進行を巻き戻した回数 (参考指標) |
 | clear_boundary / compact | `/clear` コマンド痕跡・セッション開始 | 再説明コスト (境界後の最初のプロンプト文字数) |
 | turn | system エントリの turn_duration | ターンあたりの所要時間 |
-| tool_error | ツール結果の error フラグ | AI側のつまずき頻度 |
+| tool_error | ツール結果の error フラグ | ツール実行がエラーとして記録された頻度 (ユーザーによる権限拒否として検出したものを除く) |
 
 ## 使い方
 
