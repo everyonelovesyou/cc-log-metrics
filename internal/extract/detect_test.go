@@ -57,8 +57,25 @@ func TestTurnDetection(t *testing.T) {
 
 func TestToolErrorDetection(t *testing.T) {
 	events := fixtureEvents(t)
-	if got := countKind(events, KindToolError); got != 1 {
-		t.Errorf("tool_error = %d, want 1", got)
+	// u3 (通常のエラー) と u3c (sidechain の拒否 → permission_deny 対象外) の2件。
+	// u3b (メインチェーンの拒否) は permission_deny になり tool_error には数えない
+	if got := countKind(events, KindToolError); got != 2 {
+		t.Errorf("tool_error = %d, want 2", got)
+	}
+}
+
+func TestPermissionDenyDetection(t *testing.T) {
+	events := fixtureEvents(t)
+	// u3b の1件。u3c は isSidechain=true のため対象外
+	if got := countKind(events, KindPermissionDeny); got != 1 {
+		t.Fatalf("permission_deny = %d, want 1", got)
+	}
+	for _, ev := range events {
+		if ev.Kind == KindPermissionDeny {
+			if ev.Detail["message"] != "私がサーバーを起動しますね" {
+				t.Errorf("detail.message = %v", ev.Detail["message"])
+			}
+		}
 	}
 }
 

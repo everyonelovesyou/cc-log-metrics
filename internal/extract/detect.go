@@ -50,6 +50,7 @@ func FromSession(entries []transcript.Entry, project string, lex Lexicon) []Even
 			addBoundary(e, "clear")
 		}
 
+		denialMsg, denied := e.PermissionDenial()
 		switch {
 		case isPrompt(e):
 			text := e.UserText()
@@ -70,6 +71,11 @@ func FromSession(entries []transcript.Entry, project string, lex Lexicon) []Even
 		case e.Type == "system" && e.Subtype == "turn_duration":
 			ev := base(KindTurn, e)
 			ev.Detail = map[string]any{"durationMs": e.DurationMs, "messageCount": e.MessageCount}
+			events = append(events, ev)
+		case denied && !e.IsSidechain:
+			// 分母の user_prompt (isPrompt) が isSidechain を除外しているため、分子側も除外する
+			ev := base(KindPermissionDeny, e)
+			ev.Detail = map[string]any{"message": denialMsg}
 			events = append(events, ev)
 		case e.Type == "user" && e.HasToolError():
 			events = append(events, base(KindToolError, e))

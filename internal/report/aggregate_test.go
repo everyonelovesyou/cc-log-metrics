@@ -17,6 +17,8 @@ func sampleEvents() []extract.Event {
 		ev(extract.KindUserPrompt, "/p/alpha", "s1", "2026-06-01T10:05:00.000Z", map[string]any{"chars": 20}),
 		ev(extract.KindCorrection, "/p/alpha", "s1", "2026-06-01T10:05:00.000Z", map[string]any{"utterance": "そうじゃなくて", "pattern": "そうじゃなくて"}),
 		ev(extract.KindRewind, "/p/alpha", "s1", "2026-06-01T10:06:00.000Z", nil),
+		ev(extract.KindPermissionDeny, "/p/alpha", "s1", "2026-06-01T10:06:30.000Z", map[string]any{"message": "私がやります"}),
+		ev(extract.KindPermissionDeny, "/p/alpha", "s1", "2026-06-01T10:06:45.000Z", map[string]any{"message": ""}),
 		ev(extract.KindTurn, "/p/alpha", "s1", "2026-06-01T10:07:00.000Z", map[string]any{"durationMs": float64(30000), "messageCount": float64(5)}),
 		ev(extract.KindUserPrompt, "/p/beta", "s2", "2026-07-01T10:00:00.000Z", map[string]any{"chars": 30}),
 		ev(extract.KindClearBoundary, "/p/beta", "s2", "2026-07-01T10:00:00.000Z", map[string]any{"reason": "session_start", "nextPromptChars": float64(30)}),
@@ -32,12 +34,12 @@ func TestAggregateBySession(t *testing.T) {
 	if s1.Key != "s1" {
 		t.Fatalf("Key 昇順のはず: %+v", groups)
 	}
-	if s1.Prompts != 2 || s1.Rewinds != 1 || s1.Corrections != 1 {
+	if s1.Prompts != 2 || s1.Rewinds != 1 || s1.Corrections != 1 || s1.PermissionDenies != 2 {
 		t.Errorf("s1 カウント不正: %+v", s1)
 	}
-	// 介入率 = (1+1)/2 = 1.0
-	if math.Abs(s1.InterventionRate-1.0) > 1e-9 {
-		t.Errorf("InterventionRate = %f, want 1.0", s1.InterventionRate)
+	// 介入率 = (correction 1 + permission_deny 2) / prompts 2 = 1.5 (rewind は分子に含めない)
+	if math.Abs(s1.InterventionRate-1.5) > 1e-9 {
+		t.Errorf("InterventionRate = %f, want 1.5", s1.InterventionRate)
 	}
 	if math.Abs(s1.AvgTurnSeconds-30.0) > 1e-9 {
 		t.Errorf("AvgTurnSeconds = %f, want 30.0", s1.AvgTurnSeconds)

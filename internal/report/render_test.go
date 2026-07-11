@@ -25,6 +25,17 @@ func TestRenderMarkdownExcludesUtterances(t *testing.T) {
 			t.Errorf("report.md に %q がない", want)
 		}
 	}
+	// 権限拒否の添付メッセージが漏れていないこと (Global Constraints)
+	if strings.Contains(md, "私がやります") {
+		t.Error("report.md に権限拒否の添付メッセージが含まれている")
+	}
+	// 主表に権限拒否列があり、rewind は参考指標節に移っていること
+	if !strings.Contains(md, "| キー | プロンプト | 軌道修正 | 権限拒否 | 介入率 |") {
+		t.Error("主表のヘッダーに権限拒否列がない")
+	}
+	if !strings.Contains(md, "参考指標") {
+		t.Error("rewind の参考指標節がない")
+	}
 }
 
 func TestRenderJSON(t *testing.T) {
@@ -39,5 +50,11 @@ func TestRenderJSON(t *testing.T) {
 	}
 	if strings.Contains(out, "そうじゃなくて") {
 		t.Error("metrics.json に発話本文が含まれている")
+	}
+	if !strings.Contains(out, `"permissionDenies"`) {
+		t.Error("metrics.json に permissionDenies がない")
+	}
+	if strings.Contains(out, "私がやります") {
+		t.Error("metrics.json に権限拒否の添付メッセージが含まれている")
 	}
 }
