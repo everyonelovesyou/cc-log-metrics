@@ -40,9 +40,10 @@ func TestExtractMain(t *testing.T) {
 			t.Errorf("project = %q (cwd から取得するはず)", ev.Project)
 		}
 	}
-	// user_prompt 3 + correction 1 + rewind 1 + boundary 2 + compact 1 + turn 1 + tool_error 1 = 10
-	if len(kinds) != 10 {
-		t.Errorf("イベント数 = %d, want 10 (%v)", len(kinds), kinds)
+	// user_prompt 3 + correction 1 + rewind 1 + boundary 2 + compact 1 + turn 1
+	// + tool_error 2 (u3, u3c) + permission_deny 1 (u3b) = 12
+	if len(kinds) != 12 {
+		t.Errorf("イベント数 = %d, want 12 (%v)", len(kinds), kinds)
 	}
 }
 
